@@ -17,7 +17,7 @@ class milestone2(QMainWindow):
         self.loadCategories()
         self.ui.stateList_2.currentTextChanged.connect(self.stateChangedYelp)
         self.ui.cityList_2.itemSelectionChanged.connect(self.cityChangedYelp)
-        self.ui.zipList.itemSelecitonChanged.connect(self.zipChanged)
+        self.ui.zipList.itemSelectionChanged.connect(self.zipChanged)
         self.ui.categoryList.itemSelectionChanged.connect(self.categoryChanged)
 
         #Legacy Code From Milestone 1
