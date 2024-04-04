@@ -25,7 +25,7 @@ CREATE TABLE Checkins (
 CREATE TABLE Attributes (
   business CHAR(22),
   attribute_name VARCHAR(50),
-  attribute_value BOOLEAN,
+  attribute_value VARCHAR(20),
   PRIMARY KEY (business, attribute_name),
   FOREIGN KEY (business) REFERENCES Business(id)
 );

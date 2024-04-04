@@ -10,6 +10,7 @@ def int2BoolStr (value):
     else:
         return 'True'
 
+#complete
 def insert2BusinessTable():
     #reading the JSON file
     with open('yelp_business.JSON','r') as f:
@@ -42,6 +43,7 @@ def insert2BusinessTable():
     print(count_line)
     f.close()
 
+#complete
 def insert2CheckinTable():
     #reading the JSON file
     with open('yelp_checkin.JSON','r') as f:
@@ -77,6 +79,39 @@ def insert2CheckinTable():
     print(count_line)
     f.close()
 
+def insert2AttributesTable():
+    #reading the JSON file
+    with open('yelp_business.JSON','r') as f:
+        line = f.readline()
+        count_line = 0
+        try:
+            conn = psycopg2.connect("dbname='milestone2db' user='postgres' host='localhost' password='12345'")
+        except:
+            print('Unable to connect to the database!')
+        cur = conn.cursor()
+
+        while line:
+            data = json.loads(line)
+            for item in data['attributes']:
+                value = data['attributes'][item]
+                sql_str = "INSERT INTO Attributes (business, attribute_name, attribute_value) " \
+                        "VALUES ('" + cleanStr4SQL(data['business_id']) + "','" + cleanStr4SQL(item) + "','" + cleanStr4SQL(str(value)) + "');"
+                try:
+                    cur.execute(sql_str)
+                except:
+                    print("Insert to attributesTABLE failed!")
+                conn.commit()
+
+            line = f.readline()
+            count_line +=1
+
+        cur.close()
+        conn.close()
+
+    print(count_line)
+    f.close()
+
+#complete
 def insert2CategoryTable():
     #reading the JSON file
     with open('yelp_business.JSON','r') as f:
@@ -109,6 +144,7 @@ def insert2CategoryTable():
     f.close()
 
 
-#insert2BusinessTable()
+insert2BusinessTable()
 insert2CheckinTable()
-#insert2CategoryTable()
+insert2AttributesTable()
+insert2CategoryTable()
