@@ -15,9 +15,10 @@ CREATE TABLE Business (
 
 CREATE TABLE Checkins (
   business CHAR(22),
-  datetime TIMESTAMP,
+  time TIME,
+  day VARCHAR(9),
   count INT,
-  PRIMARY KEY (business, datetime),
+  PRIMARY KEY (business, day, time),
   FOREIGN KEY (business) REFERENCES Business(id)
 );
 
@@ -52,3 +53,5 @@ CREATE TABLE Rating (
   FOREIGN KEY (business) REFERENCES Business(id),
   Primary Key (review)
 );
+
+INSERT INTO Checkins (business, time, day, count) VALUES ('dwQEZBFen2GdihLLfWeexA','Friday','20:00','2');

@@ -42,6 +42,41 @@ def insert2BusinessTable():
     print(count_line)
     f.close()
 
+def insert2CheckinTable():
+    #reading the JSON file
+    with open('yelp_checkin.JSON','r') as f:
+        line = f.readline()
+        count_line = 0
+        try:
+            conn = psycopg2.connect("dbname='milestone2db' user='postgres' host='localhost' password='12345'")
+        except:
+            print('Unable to connect to the database!')
+        cur = conn.cursor()
+
+        while line:
+            data = json.loads(line)
+            for item in data['time']:
+                day = item
+                for item2 in data['time'][day]:
+                    time = item2
+                    count = data['time'][day][time]
+                    sql_str = "INSERT INTO Checkins (business, day, time, count) " \
+                        "VALUES ('" + cleanStr4SQL(data['business_id']) + "','" + cleanStr4SQL(day) + "','" +\
+                        cleanStr4SQL(time) + "','" + str(count) + "');"
+                    try:
+                        cur.execute(sql_str)
+                    except:
+                        print("Insert to CheckinTABLE failed!")
+                    conn.commit()
+            line = f.readline()
+            count_line +=1
+
+        cur.close()
+        conn.close()
+
+    print(count_line)
+    f.close()
+
 def insert2CategoryTable():
     #reading the JSON file
     with open('yelp_business.JSON','r') as f:
@@ -74,5 +109,6 @@ def insert2CategoryTable():
     f.close()
 
 
-insert2BusinessTable()
-insert2CategoryTable()
+#insert2BusinessTable()
+insert2CheckinTable()
+#insert2CategoryTable()
