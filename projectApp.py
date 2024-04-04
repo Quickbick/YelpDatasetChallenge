@@ -14,6 +14,7 @@ class milestone2(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.loadStatesYelp()
+        self.loadCategories()
         self.ui.stateList_2.currentTextChanged.connect(self.stateChangedYelp)
         self.ui.cityList_2.itemSelectionChanged.connect(self.cityChangedYelp)
         self.ui.zipList.itemSelecitonChanged.connect(self.zipChanged)
@@ -38,7 +39,7 @@ class milestone2(QMainWindow):
     
     def loadStatesYelp(self):
         self.ui.stateList_2.clear()
-        sqlStr = "SELECT distinct state  FROM business ORDER BY state;" #check table name is correct after FROM
+        sqlStr = "SELECT distinct state  FROM Business ORDER BY state;" #check table name is correct after FROM
         try:
             results = self.executeSQL2(sqlStr)
             for row in results:
@@ -48,11 +49,22 @@ class milestone2(QMainWindow):
         self.ui.stateList_2.setCurrentIndex(-1)
         self.ui.stateList_2.clearEditText()
 
+    def loadCategories(self):
+        self.ui.categoryList.clear()
+        sqlStr = "SELECT distinct category  FROM Categories ORDER BY category"
+        try:
+            results = self.executeSQL2(sqlStr)
+            for row in results:
+                self.ui.categoryList.addItem(row[0])
+        except:
+            print("Query Failed")
+
     def stateChangedYelp(self):
+        self.ui.categoryList.clearSelection()
         self.ui.cityList_2.clear()
         state = self.ui.stateList_2.currentText()
         if (self.ui.stateList_2.currentIndex() >=0):
-            sqlStr = "SELECT distinct city FROM business WHERE state ='" + state + "' ORDER BY city;" #check table name
+            sqlStr = "SELECT distinct city FROM Business WHERE state ='" + state + "' ORDER BY city;" #check table name
             try:
                 results = self.executeSQL2(sqlStr)
                 for row in results:
@@ -61,14 +73,14 @@ class milestone2(QMainWindow):
                 print("Query Failed")
             for i in reversed(range(self.ui.businessTable_2.rowCount())):
                 self.ui.businessTable_2.removeRow(i)
-            sqlStr = "SELECT name, city, state, zip, category FROM business WHERE state ='" + state + "' ORDER BY city;"
+            sqlStr = "SELECT name, city, state, zipcode FROM Business WHERE state ='" + state + "' ORDER BY city;"
             try:
                 results = self.executeSQL2(sqlStr)
                 style = "::section {""background-color: #f3f3f3; }"
                 self.ui.businessTable_2.horizontalHeader().setStyleSheet(style)
                 self.ui.businessTable_2.setColumnCount(len(results[0]))
                 self.ui.businessTable_2.setRowCount(len(results))
-                self.ui.businessTable_2.setHorizontalHeaderLabels(['Business Name', 'City', 'State', 'Zip Code', 'Category'])
+                self.ui.businessTable_2.setHorizontalHeaderLabels(['Business Name', 'City', 'State', 'Zip Code'])
                 self.ui.businessTable_2.resizeColumnsToContents()
                 self.ui.businessTable_2.setColumnWidth(0,300)
                 self.ui.businessTable_2.setColumnWidth(1,100)
@@ -82,10 +94,11 @@ class milestone2(QMainWindow):
                 print("Query Failed")
 
     def cityChangedYelp(self):
+        self.ui.categoryList.clearSelection()
         self.ui.zipList.clear()
         city = self.ui.cityList_2.currentText()
         if (self.ui.cityList_2.currentIndex() >=0):
-            sqlStr = "SELECT distinct zip FROM business WHERE city ='" + city + "' ORDER BY zip;" #check table name
+            sqlStr = "SELECT distinct zipcode FROM Business WHERE city ='" + city + "' ORDER BY zipcode;" #check table name
             try:
                 results = self.executeSQL2(sqlStr)
                 for row in results:
@@ -94,14 +107,14 @@ class milestone2(QMainWindow):
                 print("Query Failed")
             for i in reversed(range(self.ui.businessTable_2.rowCount())):
                 self.ui.businessTable_2.removeRow(i)
-            sqlStr = "SELECT name, city, state, zip, category FROM business WHERE city ='" + city + "' ORDER BY zip;"
+            sqlStr = "SELECT name, city, state, zipcode FROM Business WHERE city ='" + city + "' ORDER BY zipcode;"
             try:
                 results = self.executeSQL2(sqlStr)
                 style = "::section {""background-color: #f3f3f3; }"
                 self.ui.businessTable_2.horizontalHeader().setStyleSheet(style)
                 self.ui.businessTable_2.setColumnCount(len(results[0]))
                 self.ui.businessTable_2.setRowCount(len(results))
-                self.ui.businessTable_2.setHorizontalHeaderLabels(['Business Name', 'City', 'State', 'Zip Code', 'Category'])
+                self.ui.businessTable_2.setHorizontalHeaderLabels(['Business Name', 'City', 'State', 'Zip Code'])
                 self.ui.businessTable_2.resizeColumnsToContents()
                 self.ui.businessTable_2.setColumnWidth(0,300)
                 self.ui.businessTable_2.setColumnWidth(1,100)
@@ -115,26 +128,19 @@ class milestone2(QMainWindow):
                 print("Query Failed")
 
     def zipChanged(self):
-        self.ui.categoryList.clear()
+        self.ui.categoryList.clearSelection()
         zip = self.ui.zipList.currentText()
         if (self.ui.zipList.currentIndex() >=0):
-            sqlStr = "SELECT distinct category FROM business WHERE zip ='" + zip + "' ORDER BY category;" #check table name
-            try:
-                results = self.executeSQL2(sqlStr)
-                for row in results:
-                    self.ui.zipList.addItem(row[0])
-            except:
-                print("Query Failed")
             for i in reversed(range(self.ui.businessTable_2.rowCount())):
                 self.ui.businessTable_2.removeRow(i)
-            sqlStr = "SELECT name, city, state, zip, category FROM business WHERE zip ='" + zip + "' ORDER BY category;"
+            sqlStr = "SELECT name, city, state, zipcode FROM business WHERE zipcode ='" + zip + "' ORDER BY name;"
             try:
                 results = self.executeSQL2(sqlStr)
                 style = "::section {""background-color: #f3f3f3; }"
                 self.ui.businessTable_2.horizontalHeader().setStyleSheet(style)
                 self.ui.businessTable_2.setColumnCount(len(results[0]))
                 self.ui.businessTable_2.setRowCount(len(results))
-                self.ui.businessTable_2.setHorizontalHeaderLabels(['Business Name', 'City', 'State', 'Zip Code', 'Category'])
+                self.ui.businessTable_2.setHorizontalHeaderLabels(['Business Name', 'City', 'State', 'Zip Code'])
                 self.ui.businessTable_2.resizeColumnsToContents()
                 self.ui.businessTable_2.setColumnWidth(0,300)
                 self.ui.businessTable_2.setColumnWidth(1,100)
@@ -148,18 +154,19 @@ class milestone2(QMainWindow):
                 print("Query Failed")
 
     def categoryChanged(self):
+        zip = self.ui.zipList.currentText()
         category = self.ui.categoryList.currentText()
         if (self.ui.categoryList.currentIndex() >=0):
             for i in reversed(range(self.ui.businessTable_2.rowCount())):
                 self.ui.businessTable_2.removeRow(i)
-            sqlStr = "SELECT name, city, state, zip, category FROM business WHERE category ='" + category + "' ORDER BY name;"
+            sqlStr = "SELECT name, city, state, zip, category FROM business WHERE category ='" + category + "' AND zipcode ='" + zip + "' ORDER BY name;"
             try:
                 results = self.executeSQL2(sqlStr)
                 style = "::section {""background-color: #f3f3f3; }"
                 self.ui.businessTable_2.horizontalHeader().setStyleSheet(style)
                 self.ui.businessTable_2.setColumnCount(len(results[0]))
                 self.ui.businessTable_2.setRowCount(len(results))
-                self.ui.businessTable_2.setHorizontalHeaderLabels(['Business Name', 'City', 'State', 'Zip Code', 'Category'])
+                self.ui.businessTable_2.setHorizontalHeaderLabels(['Business Name', 'City', 'State', 'Zip Code'])
                 self.ui.businessTable_2.resizeColumnsToContents()
                 self.ui.businessTable_2.setColumnWidth(0,300)
                 self.ui.businessTable_2.setColumnWidth(1,100)
