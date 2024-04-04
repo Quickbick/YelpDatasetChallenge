@@ -96,8 +96,8 @@ class milestone2(QMainWindow):
     def cityChangedYelp(self):
         self.ui.categoryList.clearSelection()
         self.ui.zipList.clear()
-        city = self.ui.cityList_2.currentText()
-        if (self.ui.cityList_2.currentIndex() >=0):
+        if (len(self.ui.cityList_2.selectedItems()) > 0):
+            city = self.ui.cityList_2.selectedItems()[0].text()
             sqlStr = "SELECT distinct zipcode FROM Business WHERE city ='" + city + "' ORDER BY zipcode;" #check table name
             try:
                 results = self.executeSQL2(sqlStr)
@@ -129,8 +129,8 @@ class milestone2(QMainWindow):
 
     def zipChanged(self):
         self.ui.categoryList.clearSelection()
-        zip = self.ui.zipList.currentText()
-        if (self.ui.zipList.currentIndex() >=0):
+        if (len(self.ui.zipList.selectedItems()) > 0):
+            zip = self.ui.zipList.selectedItems()[0].text()
             for i in reversed(range(self.ui.businessTable_2.rowCount())):
                 self.ui.businessTable_2.removeRow(i)
             sqlStr = "SELECT name, city, state, zipcode FROM business WHERE zipcode ='" + zip + "' ORDER BY name;"
@@ -155,8 +155,8 @@ class milestone2(QMainWindow):
 
     def categoryChanged(self):
         zip = self.ui.zipList.currentText()
-        category = self.ui.categoryList.currentText()
-        if (self.ui.categoryList.currentIndex() >=0):
+        if (len(self.ui.categoryList.selectedItems()) > 0):
+            category = self.ui.categoryList.selectedItems()[0].text()
             for i in reversed(range(self.ui.businessTable_2.rowCount())):
                 self.ui.businessTable_2.removeRow(i)
             sqlStr = "SELECT name, city, state, zip, category FROM business WHERE category ='" + category + "' AND zipcode ='" + zip + "' ORDER BY name;"
