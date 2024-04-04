@@ -12,13 +12,9 @@ def int2BoolStr (value):
 
 def insert2BusinessTable():
     #reading the JSON file
-    with open('yelp_business.JSON','r') as f:    #TODO: update path for the input file
-        #outfile =  open('./yelp_business.SQL', 'w')  #uncomment this line if you are writing the INSERT statements to an output file.
+    with open('yelp_business.JSON','r') as f:
         line = f.readline()
         count_line = 0
-
-        #connect to yelpdb database on postgres server using psycopg2
-        #TODO: update the database name, username, and password
         try:
             conn = psycopg2.connect("dbname='milestone2db' user='postgres' host='localhost' password='12345'")
         except:
@@ -44,8 +40,39 @@ def insert2BusinessTable():
         conn.close()
 
     print(count_line)
-    #outfile.close()  #uncomment this line if you are writing the INSERT statements to an output file.
+    f.close()
+
+def insert2CategoryTable():
+    #reading the JSON file
+    with open('yelp_business.JSON','r') as f:
+        line = f.readline()
+        count_line = 0
+        try:
+            conn = psycopg2.connect("dbname='milestone2db' user='postgres' host='localhost' password='12345'")
+        except:
+            print('Unable to connect to the database!')
+        cur = conn.cursor()
+
+        while line:
+            data = json.loads(line)
+            for item in data['categories']:
+                sql_str = "INSERT INTO Categories (business, category) " \
+                        "VALUES ('" + cleanStr4SQL(data['business_id']) + "','" + cleanStr4SQL(item) + "');"
+                try:
+                    cur.execute(sql_str)
+                except:
+                    print("Insert to CategoryTABLE failed!")
+                conn.commit()
+
+            line = f.readline()
+            count_line +=1
+
+        cur.close()
+        conn.close()
+
+    print(count_line)
     f.close()
 
 
-insert2BusinessTable()
+#insert2BusinessTable()
+insert2CategoryTable()

@@ -154,9 +154,9 @@ class milestone2(QMainWindow):
                 print("Query Failed")
 
     def categoryChanged(self):
-        zip = self.ui.zipList.currentText()
-        if (len(self.ui.categoryList.selectedItems()) > 0):
+        if (len(self.ui.categoryList.selectedItems()) > 0 & len(self.ui.categoryList.selectedItems()) > 0):
             category = self.ui.categoryList.selectedItems()[0].text()
+            zip = self.ui.zipList.currentItem()
             for i in reversed(range(self.ui.businessTable_2.rowCount())):
                 self.ui.businessTable_2.removeRow(i)
             sqlStr = "SELECT name, city, state, zip, category FROM business WHERE category ='" + category + "' AND zipcode ='" + zip + "' ORDER BY name;"
