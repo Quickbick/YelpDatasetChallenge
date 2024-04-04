@@ -1,16 +1,14 @@
 -- DDL SQL Statements for Milestone 2, from ER based on Appendix A,
-
 CREATE TABLE Business (
   id CHAR(22),
   name VARCHAR(90),
-  street_add VARCHAR(40),
+  street_add VARCHAR(100),
   city VARCHAR(20),
   state	 VARCHAR(2),
   zipcode CHAR(5),
   num_reviews INT,
   num_checkins INT,
   review_rating FLOAT,
-  business_stars INT,
   CHECK (review_rating <= 5),
   PRIMARY KEY (id)
 );
