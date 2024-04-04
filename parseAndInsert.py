@@ -74,5 +74,5 @@ def insert2CategoryTable():
     f.close()
 
 
-#insert2BusinessTable()
+insert2BusinessTable()
 insert2CategoryTable()

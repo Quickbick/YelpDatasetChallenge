@@ -154,12 +154,12 @@ class milestone2(QMainWindow):
                 print("Query Failed")
 
     def categoryChanged(self):
-        if (len(self.ui.categoryList.selectedItems()) > 0 & len(self.ui.categoryList.selectedItems()) > 0):
+        if (len(self.ui.categoryList.selectedItems()) > 0 and len(self.ui.zipList.selectedItems()) > 0):
             category = self.ui.categoryList.selectedItems()[0].text()
-            zip = self.ui.zipList.currentItem()
+            zip = self.ui.zipList.selectedItems()[0].text()
             for i in reversed(range(self.ui.businessTable_2.rowCount())):
                 self.ui.businessTable_2.removeRow(i)
-            sqlStr = "SELECT name, city, state, zip, category FROM business WHERE category ='" + category + "' AND zipcode ='" + zip + "' ORDER BY name;"
+            sqlStr = "SELECT name, city, state, zipcode FROM business JOIN categories ON Business.id = Categories.business WHERE category ='" + category + "' AND zipcode ='" + zip + "' ORDER BY name;"
             try:
                 results = self.executeSQL2(sqlStr)
                 style = "::section {""background-color: #f3f3f3; }"
