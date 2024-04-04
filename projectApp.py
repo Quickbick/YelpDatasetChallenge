@@ -8,15 +8,172 @@ qtCreatorFile = "ProjectUI.ui"
 
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
-class milestone1(QMainWindow):
+class milestone2(QMainWindow):
     def __init__(self):
-        super(milestone1, self).__init__()
+        super(milestone2, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.loadStatesYelp()
+        self.ui.stateList_2.currentTextChanged.connect(self.stateChangedYelp)
+        self.ui.cityList_2.itemSelectionChanged.connect(self.cityChangedYelp)
+        self.ui.zipList.itemSelecitonChanged.connect(self.zipChanged)
+        self.ui.categoryList.itemSelectionChanged.connect(self.categoryChanged)
+
+        #Legacy Code From Milestone 1
         self.loadStates()
         self.ui.stateList.currentTextChanged.connect(self.stateChanged)
         self.ui.cityList.itemSelectionChanged.connect(self.cityChanged)
 
+    def executeSQL2(self, sqlStr):
+        try:
+            conn = psycopg2.connect("dbname='milestone2db' user='postgres' host='localhost' password='12345'") #dbname and password should match database and password for whoever will demo
+        except:
+            print('Unable to connect to the database!')
+        curr = conn.cursor()
+        curr.execute(sqlStr)
+        conn.commit()
+        results = curr.fetchall()
+        conn.close()
+        return results
+    
+    def loadStatesYelp(self):
+        self.ui.stateList_2.clear()
+        sqlStr = "SELECT distinct state  FROM business ORDER BY state;" #check table name is correct after FROM
+        try:
+            results = self.executeSQL2(sqlStr)
+            for row in results:
+                self.ui.stateList_2.addItem(row[0])
+        except:
+            print("Query Failed")
+        self.ui.stateList_2.setCurrentIndex(-1)
+        self.ui.stateList_2.clearEditText()
+
+    def stateChangedYelp(self):
+        self.ui.cityList_2.clear()
+        state = self.ui.stateList_2.currentText()
+        if (self.ui.stateList_2.currentIndex() >=0):
+            sqlStr = "SELECT distinct city FROM business WHERE state ='" + state + "' ORDER BY city;" #check table name
+            try:
+                results = self.executeSQL2(sqlStr)
+                for row in results:
+                    self.ui.cityList_2.addItem(row[0])
+            except:
+                print("Query Failed")
+            for i in reversed(range(self.ui.businessTable_2.rowCount())):
+                self.ui.businessTable_2.removeRow(i)
+            sqlStr = "SELECT name, city, state, zip, category FROM business WHERE state ='" + state + "' ORDER BY city;"
+            try:
+                results = self.executeSQL2(sqlStr)
+                style = "::section {""background-color: #f3f3f3; }"
+                self.ui.businessTable_2.horizontalHeader().setStyleSheet(style)
+                self.ui.businessTable_2.setColumnCount(len(results[0]))
+                self.ui.businessTable_2.setRowCount(len(results))
+                self.ui.businessTable_2.setHorizontalHeaderLabels(['Business Name', 'City', 'State', 'Zip Code', 'Category'])
+                self.ui.businessTable_2.resizeColumnsToContents()
+                self.ui.businessTable_2.setColumnWidth(0,300)
+                self.ui.businessTable_2.setColumnWidth(1,100)
+                self.ui.businessTable_2.setColumnWidth(2,50)
+                currentRowCount = 0
+                for row in results:
+                    for colCount in range (0, len(results[0])):
+                        self.ui.businessTable_2.setItem(currentRowCount, colCount, QTableWidgetItem(row[colCount]))
+                    currentRowCount += 1
+            except:
+                print("Query Failed")
+
+    def cityChangedYelp(self):
+        self.ui.zipList.clear()
+        city = self.ui.cityList_2.currentText()
+        if (self.ui.cityList_2.currentIndex() >=0):
+            sqlStr = "SELECT distinct zip FROM business WHERE city ='" + city + "' ORDER BY zip;" #check table name
+            try:
+                results = self.executeSQL2(sqlStr)
+                for row in results:
+                    self.ui.zipList.addItem(row[0])
+            except:
+                print("Query Failed")
+            for i in reversed(range(self.ui.businessTable_2.rowCount())):
+                self.ui.businessTable_2.removeRow(i)
+            sqlStr = "SELECT name, city, state, zip, category FROM business WHERE city ='" + city + "' ORDER BY zip;"
+            try:
+                results = self.executeSQL2(sqlStr)
+                style = "::section {""background-color: #f3f3f3; }"
+                self.ui.businessTable_2.horizontalHeader().setStyleSheet(style)
+                self.ui.businessTable_2.setColumnCount(len(results[0]))
+                self.ui.businessTable_2.setRowCount(len(results))
+                self.ui.businessTable_2.setHorizontalHeaderLabels(['Business Name', 'City', 'State', 'Zip Code', 'Category'])
+                self.ui.businessTable_2.resizeColumnsToContents()
+                self.ui.businessTable_2.setColumnWidth(0,300)
+                self.ui.businessTable_2.setColumnWidth(1,100)
+                self.ui.businessTable_2.setColumnWidth(2,50)
+                currentRowCount = 0
+                for row in results:
+                    for colCount in range (0, len(results[0])):
+                        self.ui.businessTable_2.setItem(currentRowCount, colCount, QTableWidgetItem(row[colCount]))
+                    currentRowCount += 1
+            except:
+                print("Query Failed")
+
+    def zipChanged(self):
+        self.ui.categoryList.clear()
+        zip = self.ui.zipList.currentText()
+        if (self.ui.zipList.currentIndex() >=0):
+            sqlStr = "SELECT distinct category FROM business WHERE zip ='" + zip + "' ORDER BY category;" #check table name
+            try:
+                results = self.executeSQL2(sqlStr)
+                for row in results:
+                    self.ui.zipList.addItem(row[0])
+            except:
+                print("Query Failed")
+            for i in reversed(range(self.ui.businessTable_2.rowCount())):
+                self.ui.businessTable_2.removeRow(i)
+            sqlStr = "SELECT name, city, state, zip, category FROM business WHERE zip ='" + zip + "' ORDER BY category;"
+            try:
+                results = self.executeSQL2(sqlStr)
+                style = "::section {""background-color: #f3f3f3; }"
+                self.ui.businessTable_2.horizontalHeader().setStyleSheet(style)
+                self.ui.businessTable_2.setColumnCount(len(results[0]))
+                self.ui.businessTable_2.setRowCount(len(results))
+                self.ui.businessTable_2.setHorizontalHeaderLabels(['Business Name', 'City', 'State', 'Zip Code', 'Category'])
+                self.ui.businessTable_2.resizeColumnsToContents()
+                self.ui.businessTable_2.setColumnWidth(0,300)
+                self.ui.businessTable_2.setColumnWidth(1,100)
+                self.ui.businessTable_2.setColumnWidth(2,50)
+                currentRowCount = 0
+                for row in results:
+                    for colCount in range (0, len(results[0])):
+                        self.ui.businessTable_2.setItem(currentRowCount, colCount, QTableWidgetItem(row[colCount]))
+                    currentRowCount += 1
+            except:
+                print("Query Failed")
+
+    def categoryChanged(self):
+        category = self.ui.categoryList.currentText()
+        if (self.ui.categoryList.currentIndex() >=0):
+            for i in reversed(range(self.ui.businessTable_2.rowCount())):
+                self.ui.businessTable_2.removeRow(i)
+            sqlStr = "SELECT name, city, state, zip, category FROM business WHERE category ='" + category + "' ORDER BY name;"
+            try:
+                results = self.executeSQL2(sqlStr)
+                style = "::section {""background-color: #f3f3f3; }"
+                self.ui.businessTable_2.horizontalHeader().setStyleSheet(style)
+                self.ui.businessTable_2.setColumnCount(len(results[0]))
+                self.ui.businessTable_2.setRowCount(len(results))
+                self.ui.businessTable_2.setHorizontalHeaderLabels(['Business Name', 'City', 'State', 'Zip Code', 'Category'])
+                self.ui.businessTable_2.resizeColumnsToContents()
+                self.ui.businessTable_2.setColumnWidth(0,300)
+                self.ui.businessTable_2.setColumnWidth(1,100)
+                self.ui.businessTable_2.setColumnWidth(2,50)
+                currentRowCount = 0
+                for row in results:
+                    for colCount in range (0, len(results[0])):
+                        self.ui.businessTable_2.setItem(currentRowCount, colCount, QTableWidgetItem(row[colCount]))
+                    currentRowCount += 1
+            except:
+                print("Query Failed")
+
+
+    #Legacy Code From Milestone 1 Below This
     def executeSQL(self, sqlStr):
         try:
             conn = psycopg2.connect("dbname='milestone1db' user='postgres' host='localhost' password='12345'")
@@ -101,6 +258,6 @@ class milestone1(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = milestone1()
+    window = milestone2()
     window.show()
     sys.exit(app.exec_())
