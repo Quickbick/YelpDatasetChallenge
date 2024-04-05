@@ -41,8 +41,6 @@ CREATE TABLE Reviews (
   id CHAR(22),
   star_rating INT,
   date DATE, 
-  text VARCHAR(200),
-  -- vote_type VARCHAR(10), -- OLD, removed in v3.
   useful INT,  -- Changed from vote_type VARCHAR(10), added in v3.
   funny INT,   -- Added (v3)
   cool INT,    -- Added (v3)
@@ -57,4 +55,4 @@ CREATE TABLE Rating (
   Primary Key (review)
 );
 
-INSERT INTO Checkins (business, time, day, count) VALUES ('dwQEZBFen2GdihLLfWeexA','Friday','20:00','2');
+INSERT INTO Rating (review, business) VALUES ('dwQEZBFen2GdihLLfWeexA','ClgrKJ6dqiM7vSKJBJ2w6Q');

@@ -93,14 +93,26 @@ def insert2AttributesTable():
         while line:
             data = json.loads(line)
             for item in data['attributes']:
-                value = data['attributes'][item]
-                sql_str = "INSERT INTO Attributes (business, attribute_name, attribute_value) " \
-                        "VALUES ('" + cleanStr4SQL(data['business_id']) + "','" + cleanStr4SQL(item) + "','" + cleanStr4SQL(str(value)) + "');"
-                try:
-                    cur.execute(sql_str)
-                except:
-                    print("Insert to attributesTABLE failed!")
-                conn.commit()
+                if (isinstance(data['attributes'][item], dict)):
+                    for nestItem in data['attributes'][item]:
+                        newItem = item + " " + nestItem
+                        value = data['attributes'][item][nestItem]
+                        sql_str = "INSERT INTO Attributes (business, attribute_name, attribute_value) " \
+                            "VALUES ('" + cleanStr4SQL(data['business_id']) + "','" + cleanStr4SQL(newItem) + "','" + cleanStr4SQL(str(value)) + "');"
+                    try:
+                        cur.execute(sql_str)
+                    except:
+                        print("Insert to attributesTABLE failed!")
+                    conn.commit() 
+                else:
+                    value = data['attributes'][item]
+                    sql_str = "INSERT INTO Attributes (business, attribute_name, attribute_value) " \
+                            "VALUES ('" + cleanStr4SQL(data['business_id']) + "','" + cleanStr4SQL(item) + "','" + cleanStr4SQL(str(value)) + "');"
+                    try:
+                        cur.execute(sql_str)
+                    except:
+                        print("Insert to attributesTABLE failed!")
+                    conn.commit()
 
             line = f.readline()
             count_line +=1
@@ -157,9 +169,9 @@ def insert2ReviewTable():
 
         while line:
             data = json.loads(line)
-            sql_str = "INSERT INTO Reviews (id, star_rating, date, text, useful, funny, cool) " \
+            sql_str = "INSERT INTO Reviews (id, star_rating, date, useful, funny, cool) " \
                       "VALUES ('" + cleanStr4SQL(data['review_id']) + "'," + str(data["stars"]) + ",'" + \
-                      cleanStr4SQL(data["date"]) + "','" + cleanStr4SQL(data["text"]) + "'," + \
+                      cleanStr4SQL(data["date"]) + "'," + \
                       str(data["useful"]) + "," + str(data["funny"]) + "," + str(data["cool"]) + ");"
             try:
                 cur.execute(sql_str)
@@ -176,10 +188,40 @@ def insert2ReviewTable():
     print(count_line)
     f.close()
 
+def insert2RatingTable():
+    #reading the JSON file
+    with open('yelp_review.JSON','r') as f:
+        line = f.readline()
+        count_line = 0
+        try:
+            conn = psycopg2.connect("dbname='milestone2db' user='postgres' host='localhost' password='12345'")
+        except:
+            print('Unable to connect to the database!')
+        cur = conn.cursor()
+
+        while line:
+            data = json.loads(line)
+            sql_str = "INSERT INTO Rating (review, business) " \
+                "VALUES ('" + cleanStr4SQL(data['review_id']) + "','" + cleanStr4SQL(data['business_id']) + "');"
+            try:
+                cur.execute(sql_str)
+            except:
+                print("Insert to RatingTABLE failed!")
+            conn.commit()
+            line = f.readline()
+            count_line +=1
+
+        cur.close()
+        conn.close()
+
+    print(count_line)
+    f.close()
+
 
 # Calls section:
 insert2BusinessTable()
 insert2CheckinTable()
 insert2AttributesTable()
 insert2CategoryTable()
-insert2ReviewTable() # Leaving uncommented for now, nate comment this out if it breaks things If I can't find a solution to get my database to connect by tonight.
+insert2ReviewTable()
+insert2RatingTable()
