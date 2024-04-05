@@ -143,8 +143,43 @@ def insert2CategoryTable():
     print(count_line)
     f.close()
 
+# [NOTE]: Tried to base it off the complete ones, using 'yelp_review.JSON', but still having trouble connecting to database through here, so can't run tests yet.
+def insert2ReviewTable():
+    # Reading the JSON file
+    with open('yelp_review.JSON', 'r') as f:
+        line = f.readline()
+        count_line = 0
+        try:
+            conn = psycopg2.connect("dbname='milestone2db' user='postgres' host='localhost' password='12345'")
+        except:
+            print('Unable to connect to the database!')
+        cur = conn.cursor()
 
+        while line:
+            data = json.loads(line)
+            sql_str = "INSERT INTO Reviews (id, star_rating, date, text, useful, funny, cool) " \
+                      "VALUES ('" + cleanStr4SQL(data['review_id']) + "'," + str(data["stars"]) + ",'" + \
+                      cleanStr4SQL(data["date"]) + "','" + cleanStr4SQL(data["text"]) + "'," + \
+                      str(data["useful"]) + "," + str(data["funny"]) + "," + str(data["cool"]) + ");"
+            try:
+                cur.execute(sql_str)
+            except:
+                print("Insert to Reviews table failed!")
+            conn.commit()
+
+            line = f.readline()
+            count_line += 1
+
+        cur.close()
+        conn.close()
+
+    print(count_line)
+    f.close()
+
+
+# Calls section:
 insert2BusinessTable()
 insert2CheckinTable()
 insert2AttributesTable()
 insert2CategoryTable()
+insert2ReviewTable() # Leaving uncommented for now, nate comment this out if it breaks things If I can't find a solution to get my database to connect by tonight.
