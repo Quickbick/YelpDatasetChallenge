@@ -4,7 +4,7 @@ CREATE TABLE Business (
   name VARCHAR(90),
   street_add VARCHAR(100),
   city VARCHAR(20),
-  state VARCHAR(2),
+  state	 VARCHAR(2),
   zipcode CHAR(5),
   num_reviews INT,
   num_checkins INT,
@@ -42,10 +42,7 @@ CREATE TABLE Reviews (
   star_rating INT,
   date DATE, 
   text VARCHAR(200),
-  -- vote_type VARCHAR(10), -- OLD, removed in v3.
-  useful INT,  -- Changed from vote_type VARCHAR(10), added in v3.
-  funny INT,   -- Added (v3)
-  cool INT,    -- Added (v3)
+  vote_type VARCHAR(10),
   PRIMARY KEY (id)
 );
 
