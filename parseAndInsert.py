@@ -24,10 +24,10 @@ def insert2BusinessTable():
 
         while line:
             data = json.loads(line)
-            sql_str = "INSERT INTO business (id, name, street_add, city, state, zipcode, num_reviews, num_checkins, review_rating) " \
+            sql_str = "INSERT INTO business (id, name, street_add, city, state, zipcode, stars, num_reviews, num_checkins, review_rating) " \
                       "VALUES ('" + cleanStr4SQL(data['business_id']) + "','" + cleanStr4SQL(data["name"]) + "','" + cleanStr4SQL(data["address"]) + "','" + \
                       cleanStr4SQL(data["city"]) + "','" + cleanStr4SQL(data["state"]) + "','" + cleanStr4SQL(data["postal_code"]) + "'," + \
-                      str(data["review_count"]) + "," + '0' + "," + str(data["stars"]) + ");"
+                      str(data["stars"]) + "," + str(data["review_count"]) + "," + '0' + "," + "0" + ");"
             try:
                 cur.execute(sql_str)
             except:
