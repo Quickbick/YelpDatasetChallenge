@@ -26,8 +26,17 @@ class milestone2(QMainWindow):
         self.ui.cityList.itemSelectionChanged.connect(self.cityChanged)
         self.ui.zipList.itemSelectionChanged.connect(self.zipChanged)
         self.ui.searchButton.clicked.connect(self.searchPressed)
-
         self.ui.categoryList.itemSelectionChanged.connect(self.categoryChanged)
+
+    def executeSQL(self, sqlStr):
+        try:
+            conn = psycopg2.connect("dbname='milestone2db' user='postgres' host='localhost' password='12345'") #dbname and password should match database and password for whoever will demo
+        except:
+            print('Unable to connect to the database!')
+        curr = conn.cursor()
+        curr.execute(sqlStr)
+        conn.commit()
+        conn.close()
 
     def executeSQL2(self, sqlStr):
         try:
@@ -65,6 +74,7 @@ class milestone2(QMainWindow):
             print("Query Failed")
 
     def stateChanged(self):
+        self.clearAll()
         self.ui.categoryList.clearSelection()
         self.ui.cityList.clear()
         state = self.ui.stateList.currentText()
@@ -78,6 +88,7 @@ class milestone2(QMainWindow):
                 print("Query Failed")
 
     def cityChanged(self):
+        self.clearAll()
         self.ui.categoryList.clearSelection()
         self.ui.zipList.clear()
         if (len(self.ui.cityList.selectedItems()) > 0):
@@ -91,6 +102,7 @@ class milestone2(QMainWindow):
                 print("Query Failed")
 
     def zipChanged(self):
+        self.clearAll()
         if (len(self.ui.zipList.selectedItems()) > 0):
             zip = self.ui.zipList.selectedItems()[0].text()
             sqlStr = "SELECT COUNT(distinct id) FROM Business WHERE zipcode ='" + zip + "';"
@@ -115,35 +127,40 @@ class milestone2(QMainWindow):
                 self.ui.categoryTable.removeRow(i)
             sqlStr = "CREATE TABLE ZipAggregates AS SELECT zipcode, category, count(id) FROM Business b LEFT JOIN Categories c ON b.id = c.business GROUP BY b.zipcode, c.category;"
             try:
-                self.executeSQL2(sqlStr)
+                self.executeSQL(sqlStr)
             except:
                 print("Query Failed") 
             sqlStr = "SELECT count, category FROM ZipAggregates WHERE zipcode ='" + zip + "' ORDER BY count DESC;"
-            #try:
+            try:
+                results = self.executeSQL2(sqlStr)
+                style = "::section {""background-color: #f3f3f3; }"
+                self.ui.categoryTable.horizontalHeader().setStyleSheet(style)
+                self.ui.categoryTable.setColumnCount(len(results[0]))
+                self.ui.categoryTable.setRowCount(len(results))
+                self.ui.categoryTable.setHorizontalHeaderLabels(['Businesses', 'Category'])
+                currentRowCount = 0
+                for row in results:
+                    for colCount in range (0, len(results[0])):
+                        self.ui.categoryTable.setItem(currentRowCount, colCount, QTableWidgetItem(str(row[colCount])))
+                    currentRowCount += 1
+                self.ui.categoryTable.resizeColumnsToContents()
+            except:
+                print("Query Failed")
+            self.ui.categoryList.clear()
+            sqlStr = "SELECT distinct category FROM ZipAggregates WHERE zipcode ='" + zip + "' ORDER BY category"
             results = self.executeSQL2(sqlStr)
-            style = "::section {""background-color: #f3f3f3; }"
-            self.ui.categoryTable.horizontalHeader().setStyleSheet(style)
-            self.ui.categoryTable.setColumnCount(len(results[0]))
-            self.ui.categoryTable.setRowCount(len(results))
-            self.ui.categoryTable.setHorizontalHeaderLabels(['Businesses', 'Category'])
-            currentRowCount = 0
             for row in results:
-                for colCount in range (0, len(results[0])):
-                    self.ui.categoryTable.setItem(currentRowCount, colCount, QTableWidgetItem(str(row[colCount])))
-                currentRowCount += 1
-            self.ui.categoryTable.resizeColumnsToContents()
-            #except:
-                #print("Query Failed")  
+                self.ui.categoryList.addItem(row[0])
             sqlStr = "DROP TABLE IF EXISTS ZipAggregates;"
             try:
-                self.executeSQL2(sqlStr)
+                self.executeSQL(sqlStr)
             except:
                 print("Query Failed") 
 
     def searchPressed(self):
         for i in reversed(range(self.ui.businessTable.rowCount())):
             self.ui.businessTable.removeRow(i)
-        sqlStr = "SELECT name, street_add, city, stars, num_reviews, review_rating, num_checkins FROM Business WHERE"
+        sqlStr = "SELECT distinct name, street_add, city, stars, num_reviews, review_rating, num_checkins FROM Business JOIN categories ON Business.id = Categories.business WHERE"
         conditionsAdded = 0
         if (self.ui.stateList.currentIndex() >=0):
             state = self.ui.stateList.currentText()
@@ -160,6 +177,12 @@ class milestone2(QMainWindow):
             if (conditionsAdded >= 1):
                 sqlStr = sqlStr + "AND "
             sqlStr = sqlStr + "zipcode ='" + zip + "' "
+            conditionsAdded += 1
+        if (len(self.ui.categoryList.selectedItems()) > 0):
+            category = self.ui.categoryList.selectedItems()[0].text()
+            if (conditionsAdded >= 1):
+                sqlStr = sqlStr + "AND "
+            sqlStr = sqlStr + "category ='" + category + "' "
             conditionsAdded += 1
         sqlStr = sqlStr + "ORDER BY name;"
         try:
@@ -179,30 +202,26 @@ class milestone2(QMainWindow):
             print("Query Failed")
 
     def categoryChanged(self):
-        if (len(self.ui.categoryList.selectedItems()) > 0 and len(self.ui.zipList.selectedItems()) > 0):
-            category = self.ui.categoryList.selectedItems()[0].text()
-            zip = self.ui.zipList.selectedItems()[0].text()
-            for i in reversed(range(self.ui.businessTable.rowCount())):
-                self.ui.businessTable.removeRow(i)
-            sqlStr = "SELECT name, city, state, zipcode FROM business JOIN categories ON Business.id = Categories.business WHERE category ='" + category + "' AND zipcode ='" + zip + "' ORDER BY name;"
-            try:
-                results = self.executeSQL2(sqlStr)
-                style = "::section {""background-color: #f3f3f3; }"
-                self.ui.businessTable.horizontalHeader().setStyleSheet(style)
-                self.ui.businessTable.setColumnCount(len(results[0]))
-                self.ui.businessTable.setRowCount(len(results))
-                self.ui.businessTable.setHorizontalHeaderLabels(['Business Name', 'City', 'State', 'Zip Code'])
-                self.ui.businessTable.resizeColumnsToContents()
-                self.ui.businessTable.setColumnWidth(0,300)
-                self.ui.businessTable.setColumnWidth(1,100)
-                self.ui.businessTable.setColumnWidth(2,50)
-                currentRowCount = 0
-                for row in results:
-                    for colCount in range (0, len(results[0])):
-                        self.ui.businessTable.setItem(currentRowCount, colCount, QTableWidgetItem(row[colCount]))
-                    currentRowCount += 1
-            except:
-                print("Query Failed")        
+        for i in reversed(range(self.ui.businessTable.rowCount())):
+            self.ui.businessTable.removeRow(i)
+        for i in reversed(range(self.ui.businessTable_2.rowCount())):
+            self.ui.businessTable_2.removeRow(i)
+        for i in reversed(range(self.ui.businessTable_3.rowCount())):
+            self.ui.businessTable_3.removeRow(i)
+
+    def clearAll(self):
+        for i in reversed(range(self.ui.businessTable.rowCount())):
+            self.ui.businessTable.removeRow(i)
+        for i in reversed(range(self.ui.businessTable_2.rowCount())):
+            self.ui.businessTable_2.removeRow(i)
+        for i in reversed(range(self.ui.businessTable_3.rowCount())):
+            self.ui.businessTable_3.removeRow(i)
+        for i in reversed(range(self.ui.categoryTable.rowCount())):
+                self.ui.categoryTable.removeRow(i)
+        self.ui.categoryList.clear()
+        self.ui.numBusinesses.clear()
+        self.ui.totalPop.clear()
+        self.ui.averageIncome.clear()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -216,5 +235,3 @@ if __name__ == "__main__":
 # Successful Business Table - businessTable_3
 # Popular Refresh Button - popularRefresh
 # Successful Refresh Button - successfulRefresh
-
-#HEX COLOR #ede8da
