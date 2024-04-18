@@ -18,7 +18,7 @@ class milestone2(QMainWindow):
         self.ui.numBusinesses.setReadOnly(True)
         self.ui.totalPop.setReadOnly(True)
         self.ui.averageIncome.setReadOnly(True)
-        style = "::section {""background-color: #f3f3f3; }"
+        style = "::section {""background-color: #ede8da; }"
         self.ui.numBusinesses.setStyleSheet(style)
         self.ui.totalPop.setStyleSheet(style)
         self.ui.averageIncome.setStyleSheet(style)
@@ -111,6 +111,34 @@ class milestone2(QMainWindow):
                 self.ui.averageIncome.setPlainText(str(results[0][0]))
             except:
                 print("Query Failed")  
+            for i in reversed(range(self.ui.categoryTable.rowCount())):
+                self.ui.categoryTable.removeRow(i)
+            sqlStr = "CREATE TABLE ZipAggregates AS SELECT zipcode, category, count(id) FROM Business b LEFT JOIN Categories c ON b.id = c.business GROUP BY b.zipcode, c.category;"
+            try:
+                self.executeSQL2(sqlStr)
+            except:
+                print("Query Failed") 
+            sqlStr = "SELECT count, category FROM ZipAggregates WHERE zipcode ='" + zip + "' ORDER BY count DESC;"
+            #try:
+            results = self.executeSQL2(sqlStr)
+            style = "::section {""background-color: #f3f3f3; }"
+            self.ui.categoryTable.horizontalHeader().setStyleSheet(style)
+            self.ui.categoryTable.setColumnCount(len(results[0]))
+            self.ui.categoryTable.setRowCount(len(results))
+            self.ui.categoryTable.setHorizontalHeaderLabels(['Businesses', 'Category'])
+            currentRowCount = 0
+            for row in results:
+                for colCount in range (0, len(results[0])):
+                    self.ui.categoryTable.setItem(currentRowCount, colCount, QTableWidgetItem(str(row[colCount])))
+                currentRowCount += 1
+            self.ui.categoryTable.resizeColumnsToContents()
+            #except:
+                #print("Query Failed")  
+            sqlStr = "DROP TABLE IF EXISTS ZipAggregates;"
+            try:
+                self.executeSQL2(sqlStr)
+            except:
+                print("Query Failed") 
 
     def searchPressed(self):
         for i in reversed(range(self.ui.businessTable.rowCount())):
