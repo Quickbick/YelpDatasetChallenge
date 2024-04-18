@@ -54,5 +54,3 @@ CREATE TABLE Rating (
   FOREIGN KEY (business) REFERENCES Business(id),
   Primary Key (review)
 );
-
-INSERT INTO Rating (review, business) VALUES ('dwQEZBFen2GdihLLfWeexA','ClgrKJ6dqiM7vSKJBJ2w6Q');

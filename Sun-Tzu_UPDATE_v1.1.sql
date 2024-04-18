@@ -14,7 +14,8 @@ SELECT
 FROM
     Business b
 LEFT JOIN Checkins c ON b.id = c.business
-LEFT JOIN Reviews r ON b.id = r.id
+LEFT JOIN Rating ra ON b.id = ra.business
+LEFT JOIN Reviews r ON ra.review = r.id
 GROUP BY
     b.id;
 

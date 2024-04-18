@@ -27,7 +27,7 @@ def insert2BusinessTable():
             sql_str = "INSERT INTO business (id, name, street_add, city, state, zipcode, num_reviews, num_checkins, review_rating) " \
                       "VALUES ('" + cleanStr4SQL(data['business_id']) + "','" + cleanStr4SQL(data["name"]) + "','" + cleanStr4SQL(data["address"]) + "','" + \
                       cleanStr4SQL(data["city"]) + "','" + cleanStr4SQL(data["state"]) + "','" + cleanStr4SQL(data["postal_code"]) + "'," + \
-                      str(data["review_count"]) + "," + "0" + "," + str(data["stars"]) + ");"
+                      str(data["review_count"]) + "," + '0' + "," + str(data["stars"]) + ");"
             try:
                 cur.execute(sql_str)
             except:
