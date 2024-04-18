@@ -15,8 +15,16 @@ class milestone2(QMainWindow):
         self.ui.setupUi(self)
         self.loadStates()
         self.loadCategories()
+        self.ui.numBusinesses.setReadOnly(True)
+        self.ui.totalPop.setReadOnly(True)
+        self.ui.averageIncome.setReadOnly(True)
+        style = "::section {""background-color: #f3f3f3; }"
+        self.ui.numBusinesses.setStyleSheet(style)
+        self.ui.totalPop.setStyleSheet(style)
+        self.ui.averageIncome.setStyleSheet(style)
         self.ui.stateList.currentTextChanged.connect(self.stateChanged)
         self.ui.cityList.itemSelectionChanged.connect(self.cityChanged)
+        self.ui.zipList.itemSelectionChanged.connect(self.zipChanged)
         self.ui.searchButton.clicked.connect(self.searchPressed)
 
         self.ui.categoryList.itemSelectionChanged.connect(self.categoryChanged)
@@ -81,6 +89,28 @@ class milestone2(QMainWindow):
                     self.ui.zipList.addItem(row[0])
             except:
                 print("Query Failed")
+
+    def zipChanged(self):
+        if (len(self.ui.zipList.selectedItems()) > 0):
+            zip = self.ui.zipList.selectedItems()[0].text()
+            sqlStr = "SELECT COUNT(distinct id) FROM Business WHERE zipcode ='" + zip + "';"
+            try:
+                results = self.executeSQL2(sqlStr)
+                self.ui.numBusinesses.setPlainText(str(results[0][0]))
+            except:
+                print("Query Failed")
+            sqlStr = "SELECT population FROM zipcodedata WHERE zipcode ='" + zip + "';"
+            try:
+                results = self.executeSQL2(sqlStr)
+                self.ui.totalPop.setPlainText(str(results[0][0]))
+            except:
+                print("Query Failed")
+            sqlStr = "SELECT meanincome FROM zipcodedata WHERE zipcode ='" + zip + "';"
+            try:
+                results = self.executeSQL2(sqlStr)
+                self.ui.averageIncome.setPlainText(str(results[0][0]))
+            except:
+                print("Query Failed")  
 
     def searchPressed(self):
         for i in reversed(range(self.ui.businessTable.rowCount())):
@@ -153,3 +183,10 @@ if __name__ == "__main__":
     sys.exit(app.exec_())
 
 
+#Variables For GUI Access
+# Popular Business Table - businessTable_2
+# Successful Business Table - businessTable_3
+# Popular Refresh Button - popularRefresh
+# Successful Refresh Button - successfulRefresh
+
+#HEX COLOR #ede8da

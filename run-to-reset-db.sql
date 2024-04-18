@@ -1,3 +1,7 @@
+psql -U postgres
+12345
+\c milestone2db
+
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 
