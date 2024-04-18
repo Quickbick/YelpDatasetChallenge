@@ -10,7 +10,8 @@ SELECT
     b.id AS BusinessID,
     COALESCE(SUM(c.count), 0) AS numCheckins,
     COUNT(r.id) AS reviewCount,
-    COALESCE(AVG(r.star_rating), 0) AS reviewrating
+    -- OLD UNROUNDED: COALESCE(AVG(r.star_rating), 0) AS reviewrating
+    COALESCE(ROUND(AVG(r.star_rating), 1), 0) AS reviewrating -- Now, I'm trying to round to 1 decimal places like they did in the example photos.
 FROM
     Business b
 LEFT JOIN Checkins c ON b.id = c.business
