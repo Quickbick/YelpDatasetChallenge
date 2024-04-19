@@ -28,6 +28,9 @@ class milestone2(QMainWindow):
         self.ui.searchButton.clicked.connect(self.searchPressed)
         self.ui.categoryList.itemSelectionChanged.connect(self.categoryChanged)
 
+        # Succ/pop:
+        self.ui.successfulRefresh.clicked.connect(self.succRefreshPressed)
+
     def executeSQL(self, sqlStr):
         try:
             conn = psycopg2.connect("dbname='milestone2db' user='postgres' host='localhost' password='12345'") #dbname and password should match database and password for whoever will demo
@@ -115,14 +118,14 @@ class milestone2(QMainWindow):
             try:
                 results = self.executeSQL2(sqlStr)
                 self.ui.totalPop.setPlainText(str(results[0][0]))
-            except:
-                print("Query Failed")
+            except Exception as e:
+                print("[totalPop] Query Failed", e)
             sqlStr = "SELECT meanincome FROM zipcodedata WHERE zipcode ='" + zip + "';"
             try:
                 results = self.executeSQL2(sqlStr)
                 self.ui.averageIncome.setPlainText(str(results[0][0]))
-            except:
-                print("Query Failed")  
+            except Exception as e:
+                print("[avgIncome] Query Failed", e)
             for i in reversed(range(self.ui.categoryTable.rowCount())):
                 self.ui.categoryTable.removeRow(i)
             sqlStr = "CREATE TABLE ZipAggregates AS SELECT zipcode, category, count(id) FROM Business b LEFT JOIN Categories c ON b.id = c.business GROUP BY b.zipcode, c.category;"
@@ -201,6 +204,74 @@ class milestone2(QMainWindow):
         except:
             print("Query Failed")
 
+    # TODO
+    # New-new-new succRefreshPressed function to filter businesses based on average rating, no star ratings displayed (because opinions/subvective I suppose), and sort:
+    def succRefreshPressed(self):
+
+        for i in reversed(range(self.ui.businessTable_3.rowCount())):
+            self.ui.businessTable_3.removeRow(i)
+
+        if len(self.ui.zipList.selectedItems()) > 0:
+            zip_code = self.ui.zipList.selectedItems()[0].text()
+            average_rating = self.calculateAverageRatingZIP(zip_code) # calculateAverageRating above gets average rating of the state (ZIP is zip code)/
+            if average_rating is not None:
+                if len(self.ui.categoryList.selectedItems()) > 0:
+                    category = self.ui.categoryList.selectedItems()[0].text()
+                    sqlStr = "SELECT distinct name, street_add, city, num_reviews, review_rating, num_checkins FROM Business JOIN categories ON Business.id = Categories.business WHERE"
+                    conditionsAdded = 0
+                    sqlStr += " zipcode ='" + zip_code + "' AND review_rating > " + str(average_rating) + " AND category = '" + category + "' "
+                    conditionsAdded += 1
+                else:
+                    sqlStr = "SELECT distinct name, street_add, city, num_reviews, review_rating, num_checkins FROM Business JOIN categories ON Business.id = Categories.business WHERE"
+                    conditionsAdded = 0
+                    sqlStr += " zipcode ='" + zip_code + "' AND review_rating > " + str(average_rating) + " "
+                    conditionsAdded += 1
+
+                sqlStr += "ORDER BY review_rating DESC, name;"  # Sort by Average Rating in descending order and then by Business Name
+                try:
+                    results = self.executeSQL2(sqlStr)
+                    # style = "::section {""background-color: #f3f3f3; }"
+                    style = "::section {""background-color: #FFE6E6; }" # @Override w/ Pink 
+                    self.ui.businessTable_3.horizontalHeader().setStyleSheet(style)
+                    self.ui.businessTable_3.setColumnCount(len(results[0]) - 1)  # Exclude Business Rating column
+                    self.ui.businessTable_3.setRowCount(len(results))
+                    self.ui.businessTable_3.setHorizontalHeaderLabels(['Business Name', 'Address', 'City', 'Number of Reviews', 'Average Rating', 'Number of Check-Ins'])
+                    currentRowCount = 0
+                    for row in results:
+                        for colCount in range(0, len(results[0])):
+                            if colCount != 3:  # Skip inserting Business Rating column
+                                self.ui.businessTable_3.setItem(currentRowCount, colCount, QTableWidgetItem(str(row[colCount])))
+                        currentRowCount += 1
+                    self.ui.businessTable_3.resizeColumnsToContents()
+                except Exception as e:
+                    print("SuccRefresh Query Failed -> ", e)
+
+        
+
+    def calculateAverageRating(self, city):
+        sqlStr = "SELECT AVG(review_rating) FROM Business WHERE city = '" + city + "'"
+        try:
+            result = self.executeSQL2(sqlStr)
+            if result and result[0][0]:
+                return result[0][0]
+            else:
+                return None
+        except Exception as e:
+            print("Failed to calculate average rating:", e)
+            return None
+        
+    def calculateAverageRatingZIP(self, zip_code):
+        sqlStr = "SELECT AVG(review_rating) FROM Business WHERE zipcode = '" + zip_code + "'"
+        try:
+            result = self.executeSQL2(sqlStr)
+            if result and result[0][0]:
+                return result[0][0]
+            else:
+                return None
+        except Exception as e:
+            print("Failed to calculate average rating:", e)
+            return None
+
     def categoryChanged(self):
         for i in reversed(range(self.ui.businessTable.rowCount())):
             self.ui.businessTable.removeRow(i)
@@ -235,3 +306,152 @@ if __name__ == "__main__":
 # Successful Business Table - businessTable_3
 # Popular Refresh Button - popularRefresh
 # Successful Refresh Button - successfulRefresh
+
+
+# JOHNS COMMENTS during working (pls don't delete until finished with popularity, too, I ref these):
+"""
+        for i in reversed(range(self.ui.businessTable_3.rowCount())):
+            self.ui.businessTable_3.removeRow(i)
+
+        if len(self.ui.cityList.selectedItems()) > 0:
+            city = self.ui.cityList.selectedItems()[0].text()
+            average_rating = self.calculateAverageRating(city) # calculateAverageRating above gets average rating of the city.
+            if average_rating is not None:
+                if len(self.ui.categoryList.selectedItems()) > 0:
+                    category = self.ui.categoryList.selectedItems()[0].text()
+                    sqlStr = "SELECT distinct name, street_add, city, num_reviews, review_rating, num_checkins FROM Business JOIN categories ON Business.id = Categories.business WHERE"
+                    conditionsAdded = 0
+                    sqlStr += " city ='" + city + "' AND review_rating > " + str(average_rating) + " AND category = '" + category + "' "
+                    conditionsAdded += 1
+                else:
+                    sqlStr = "SELECT distinct name, street_add, city, num_reviews, review_rating, num_checkins FROM Business JOIN categories ON Business.id = Categories.business WHERE"
+                    conditionsAdded = 0
+                    sqlStr += " city ='" + city + "' AND review_rating > " + str(average_rating) + " "
+                    conditionsAdded += 1
+
+                sqlStr += "ORDER BY review_rating DESC, name;"  # Sort by Average Rating in descending order and then by Business Name
+                try:
+                    results = self.executeSQL2(sqlStr)
+                    # style = "::section {""background-color: #f3f3f3; }"
+                    style = "::section {""background-color: #FFE6E6; }" # @Override w/ Pink 
+                    self.ui.businessTable_3.horizontalHeader().setStyleSheet(style)
+                    self.ui.businessTable_3.setColumnCount(len(results[0]) - 1)  # Exclude Business Rating column
+                    self.ui.businessTable_3.setRowCount(len(results))
+                    self.ui.businessTable_3.setHorizontalHeaderLabels(['Business Name', 'Address', 'City', 'Number of Reviews', 'Average Rating', 'Number of Check-Ins'])
+                    currentRowCount = 0
+                    for row in results:
+                        for colCount in range(0, len(results[0])):
+                            if colCount != 3:  # Skip inserting Business Rating column
+                                self.ui.businessTable_3.setItem(currentRowCount, colCount, QTableWidgetItem(str(row[colCount])))
+                        currentRowCount += 1
+                    self.ui.businessTable_3.resizeColumnsToContents()
+                except Exception as e:
+                    print("SuccRefresh Query Failed -> ", e)
+"""
+
+"""
+        for i in reversed(range(self.ui.businessTable_3.rowCount())):
+            self.ui.businessTable_3.removeRow(i)
+
+        if len(self.ui.cityList.selectedItems()) > 0:
+            city = self.ui.cityList.selectedItems()[0].text()
+            average_rating = self.calculateAverageRating(city) # calculateAverageRating above gets average rating of the city.
+            if average_rating is not None:
+                sqlStr = "SELECT distinct name, street_add, city, num_reviews, review_rating, num_checkins FROM Business JOIN categories ON Business.id = Categories.business WHERE"
+                conditionsAdded = 0
+                sqlStr += " city ='" + city + "' AND review_rating > " + str(average_rating) + " "
+                conditionsAdded += 1
+                sqlStr += "ORDER BY review_rating DESC, name;"  # Sort by Average Rating in descending order and then by Business Name
+                try:
+                    results = self.executeSQL2(sqlStr)
+                    # style = "::section {""background-color: #f3f3f3; }"
+                    style = "::section {""background-color: #FFE6E6; }" # @Override w/ Pink 
+                    self.ui.businessTable_3.horizontalHeader().setStyleSheet(style)
+                    self.ui.businessTable_3.setColumnCount(len(results[0]) - 1)  # Exclude Business Rating column
+                    self.ui.businessTable_3.setRowCount(len(results))
+                    self.ui.businessTable_3.setHorizontalHeaderLabels(['Business Name', 'Address', 'City', 'Number of Reviews', 'Average Rating', 'Number of Check-Ins'])
+                    currentRowCount = 0
+                    for row in results:
+                        for colCount in range(0, len(results[0])):
+                            if colCount != 3:  # Skip inserting Business Rating column
+                                self.ui.businessTable_3.setItem(currentRowCount, colCount, QTableWidgetItem(str(row[colCount])))
+                        currentRowCount += 1
+                    self.ui.businessTable_3.resizeColumnsToContents()
+                except Exception as e:
+                    print("SuccRefresh Query Failed -> ", e)
+"""
+
+"""
+        for i in reversed(range(self.ui.businessTable_3.rowCount())):
+            self.ui.businessTable_3.removeRow(i)
+
+        if len(self.ui.cityList.selectedItems()) > 0:
+            city = self.ui.cityList.selectedItems()[0].text()
+            average_rating = self.calculateAverageRating(city)
+            if average_rating is not None:
+                sqlStr = "SELECT name, street_add, city, stars, num_reviews, review_rating, num_checkins " \
+                        "FROM Business JOIN Categories ON Business.id = Categories.business " \
+                        "WHERE city ='" + city + "' AND review_rating > " + str(average_rating) + " " \
+                        "ORDER BY name;"
+                try:
+                    results = self.executeSQL2(sqlStr)
+                    style = "::section {""background-color: #f3f3f3; }"
+                    self.ui.businessTable_3.horizontalHeader().setStyleSheet(style)
+                    self.ui.businessTable_3.setColumnCount(len(results[0]))
+                    self.ui.businessTable_3.setRowCount(len(results))
+                    self.ui.businessTable_3.setHorizontalHeaderLabels(['Business Name', 'Address', 'City', 'Business Rating', 'Number of Reviews', 'Average Rating', 'Number of Check-Ins'])
+                    currentRowCount = 0
+                    for row in results:
+                        for colCount in range(0, len(results[0])):
+                            self.ui.businessTable_3.setItem(currentRowCount, colCount, QTableWidgetItem(str(row[colCount])))
+                        currentRowCount += 1
+                    self.ui.businessTable_3.resizeColumnsToContents()
+                except Exception as e:
+                    print("SuccRefresh Query Failed -> ", e)
+"""
+"""
+    def succRefreshPressed(self):
+        for i in reversed(range(self.ui.businessTable_3.rowCount())):
+            self.ui.businessTable_3.removeRow(i)
+        sqlStr = "SELECT distinct name, street_add, city, stars, num_reviews, review_rating, num_checkins FROM Business JOIN categories ON Business.id = Categories.business WHERE"
+        conditionsAdded = 0
+        if (self.ui.stateList.currentIndex() >=0):
+            state = self.ui.stateList.currentText()
+            sqlStr = sqlStr + " state ='" + state + "' "
+            conditionsAdded += 1
+        if (len(self.ui.cityList.selectedItems()) > 0):
+            city = self.ui.cityList.selectedItems()[0].text()
+            if (conditionsAdded >= 1):
+                sqlStr = sqlStr + "AND "
+            sqlStr = sqlStr + "city ='" + city + "' "
+            conditionsAdded += 1
+        if (len(self.ui.zipList.selectedItems()) > 0):
+            zip = self.ui.zipList.selectedItems()[0].text()
+            if (conditionsAdded >= 1):
+                sqlStr = sqlStr + "AND "
+            sqlStr = sqlStr + "zipcode ='" + zip + "' "
+            conditionsAdded += 1
+        if (len(self.ui.categoryList.selectedItems()) > 0):
+            category = self.ui.categoryList.selectedItems()[0].text()
+            if (conditionsAdded >= 1):
+                sqlStr = sqlStr + "AND "
+            sqlStr = sqlStr + "category ='" + category + "' "
+            conditionsAdded += 1
+        sqlStr = sqlStr + "ORDER BY name;"
+        try:
+            results = self.executeSQL2(sqlStr)
+            style = "::section {""background-color: #f3f3f3; }"
+            self.ui.businessTable_3.horizontalHeader().setStyleSheet(style)
+            self.ui.businessTable_3.setColumnCount(len(results[0]))
+            self.ui.businessTable_3.setRowCount(len(results))
+            self.ui.businessTable_3.setHorizontalHeaderLabels(['Business Name', 'Address', 'City', 'Business Rating', 'Number of Reviews', 'Average Rating', 'Number of Check-Ins'])
+            currentRowCount = 0
+            for row in results:
+                for colCount in range (0, len(results[0])):
+                    self.ui.businessTable_3.setItem(currentRowCount, colCount, QTableWidgetItem(str(row[colCount])))
+                currentRowCount += 1
+            self.ui.businessTable_3.resizeColumnsToContents()
+        except Exception as e:
+            print("SuccRefresh Query Failed -> ", e)
+        # pass
+"""
